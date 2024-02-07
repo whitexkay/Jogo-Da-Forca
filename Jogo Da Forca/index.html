@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo da Forca - Animais</title>
+<style>
+    #word-container {
+        margin-top: 20px;
+        font-size: 24px;
+    }
+    #letters-container {
+        margin-top: 20px;
+        font-size: 18px;
+    }
+    #hangman {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .body-part {
+        stroke: black;
+        fill: transparent;
+        stroke-width: 2;
+    }
+</style>
+</head>
+<body>
+    <h1>Jogo da Forca</h1>
+    <p id="hint"></p>
+    <div id="word-container"></div>
+    <div id="letters-container"></div>
+    <svg id="hangman" width="200" height="200">
+        <!-- Cabeça -->
+        <circle class="body-part head" cx="100" cy="40" r="20" />
+        <!-- Corpo -->
+        <line class="body-part body" x1="100" y1="60" x2="100" y2="120" />
+        <!-- Braço esquerdo -->
+        <line class="body-part left-arm" x1="100" y1="70" x2="80" y2="100" />
+        <!-- Braço direito -->
+        <line class="body-part right-arm" x1="100" y1="70" x2="120" y2="100" />
+        <!-- Perna esquerda -->
+        <line class="body-part left-leg" x1="100" y1="120" x2="80" y2="150" />
+        <!-- Perna direita -->
+        <line class="body-part right-leg" x1="100" y1="120" x2="120" y2="150" />
+    </svg>
+
+    <script>
+        const animalsWithHints = [
+            { word: "gato", hint: "Um felino doméstico" },
+            { word: "cachorro", hint: "O melhor amigo do homem" },
+            { word: "elefante", hint: "Um animal de tromba grande" },
+            { word: "tigre", hint: "Um grande felino listrado" },
+            { word: "leão", hint: "O rei da selva" },
+            { word: "girafa", hint: "Um animal com pescoço longo" }
+        ];
+
+        let selectedAnimalInfo = animalsWithHints[Math.floor(Math.random() * animalsWithHints.length)];
+        let selectedAnimal = selectedAnimalInfo.word;
+        let hint = selectedAnimalInfo.hint;
+        let guessedLetters = new Set();
+        let incorrectGuesses = 0;
+
+        const hintElement = document.getElementById("hint");
+        const wordContainer = document.getElementById("word-container");
+        const lettersContainer = document.getElementById("letters-container");
+
+        hintElement.textContent = "Dica: " + hint;
+
+        let hiddenAnimal = selectedAnimal.split('').map(letter => guessedLetters.has(letter) ? letter : '_').join('');
+        wordContainer.textContent = hiddenAnimal;
+
+        const alphabet = "abcdefghijklmnopqrstuvwxyz";
+        alphabet.split('').forEach(letter => {
+            const button = document.createElement("button");
+            button.textContent = letter;
+            button.addEventListener("click", () => guessLetter(letter));
+            lettersContainer.appendChild(button);
+        });
+
+        function guessLetter(letter) {
+            guessedLetters.add(letter);
+            if (!selectedAnimal.includes(letter)) {
+                incorrectGuesses++;
+                updateHangman();
+            }
+            updateAnimal();
+            updateLetters();
+            checkGameOver();
+        }
+
+        function updateAnimal() {
+            hiddenAnimal = selectedAnimal.split('').map(letter => guessedLetters.has(letter) ? letter : '_').join('');
+            wordContainer.textContent = hiddenAnimal;
+        }
+
+        function updateLetters() {
+            Array.from(lettersContainer.children).forEach(button => {
+                const letter = button.textContent;
+                button.disabled = guessedLetters.has(letter);
+            });
+        }
+
+        function updateHangman() {
+            const bodyParts = document.querySelectorAll('.body-part');
+            bodyParts.forEach((part, index) => {
+                if (index < incorrectGuesses + 1) {
+                    part.style.display = 'initial';
+                } else {
+                    part.style.display = 'none';
+                }
+            });
+        }
+
+        function checkGameOver() {
+            if (hiddenAnimal === selectedAnimal) {
+                alert("Parabéns! Você venceu! O animal era: " + selectedAnimal);
+                resetGame();
+            } else if (incorrectGuesses >= 6) {
+                alert("Game over! O animal era: " + selectedAnimal);
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            selectedAnimalInfo = animalsWithHints[Math.floor(Math.random() * animalsWithHints.length)];
+            selectedAnimal = selectedAnimalInfo.word;
+            hint = selectedAnimalInfo.hint;
+            guessedLetters.clear();
+            hiddenAnimal = selectedAnimal.split('').map(letter => guessedLetters.has(letter) ? letter : '_').join('');
+            hintElement.textContent = "Dica: " + hint;
+            wordContainer.textContent = hiddenAnimal;
+            incorrectGuesses = 0;
+            updateLetters();
+            resetHangman();
+        }
+
+        function resetHangman() {
+            const bodyParts = document.querySelectorAll('.body-part');
+            bodyParts.forEach(part => part.style.display = 'none');
+        }
+    </script>
+</body>
+</html>
